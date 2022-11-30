@@ -2,18 +2,21 @@ package terraform
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/kubefirst/kubefirst/configs"
 	"github.com/kubefirst/kubefirst/internal/aws"
 	"github.com/kubefirst/kubefirst/pkg"
 	"github.com/spf13/viper"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 func terraformConfig(terraformEntryPoint string) map[string]string {
@@ -178,6 +181,31 @@ func DestroyBaseTerraform(skipBaseTerraform bool) {
 			log.Panicf("error: could not change directory to " + directory)
 		}
 
+		k8sConfig, err := clientcmd.BuildConfigFromFlags("", config.KubeConfigPath)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		client, err := kubernetes.NewForConfig(k8sConfig)
+		if err != nil {
+			panic(err.Error())
+		}
+		services, err := client.CoreV1().Services("ingress-nginx").List(context.Background(), v1.ListOptions{})
+		if err != nil {
+			panic(err.Error())
+		}
+		var splitHostname []string
+		var ingressNginxId, ingressNginxHostname string
+		for _, service := range services.Items {
+			if *&service.Name == "ingress-nginx-controller" {
+				ingressNginxHostname = *&service.Status.LoadBalancer.Ingress[0].Hostname
+				fmt.Println("hostname is: ", ingressNginxHostname)
+				splitHostname = strings.Split(ingressNginxHostname, "-")
+				log.Println("just the beginning: ", splitHostname[0])
+				ingressNginxId = splitHostname[0]
+			}
+		}
+
 		envs := map[string]string{}
 
 		aws.ProfileInjection(&envs)
@@ -201,18 +229,7 @@ func DestroyBaseTerraform(skipBaseTerraform bool) {
 			log.Panicf("Failed to destroy load balancer: %v", err)
 		}
 
-		time.Sleep(45 * time.Second)
-		err = pkg.ExecShellWithVars(envs, config.TerraformClientPath, "init")
-		if err != nil {
-			log.Printf("failed to terraform init base %v", err)
-		}
-
-		err = pkg.ExecShellWithVars(envs, config.TerraformClientPath, "destroy", "-auto-approve")
-		if err != nil {
-			log.Printf("failed to terraform destroy base %v", err)
-		}
-
-		err = aws.DestroySecurityGroup(viper.GetString("cluster-name"))
+		err = aws.DestroySecurityGroup(fmt.Sprintf("k8s-elb-%s", ingressNginxId))
 		if err != nil {
 			log.Panicf("Failed to destroy security group: %v", err)
 		}

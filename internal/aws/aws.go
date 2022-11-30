@@ -1033,39 +1033,35 @@ func DestroyLoadBalancer(clusterName string) error {
 	return nil
 }
 
-func DestroySecurityGroup(clusterName string) error {
+func DestroySecurityGroup(securityGroupName string) error {
 	// todo: use method approach to avoid new AWS client initializations
-	awsConfig, err := NewAws()
+	awsRegion := viper.GetString("aws.region")
+	awsProfile := viper.GetString("aws.profile")
+	awsConfig, err := config.LoadDefaultConfig(
+		context.Background(),
+		config.WithRegion(awsRegion),
+		config.WithSharedConfigProfile(awsProfile),
+	)
 	if err != nil {
-		log.Printf("Failed to load config: %v", err)
-		return err
+		log.Println("error: ", err)
 	}
 
-	searchSecurityGroupCmd := fmt.Sprintf("aws ec2 describe-security-groups --filters Name=tag:kubernetes.io/cluster/%s,Values=owned "+
-		"| jq -r '.SecurityGroups[].GroupId' | tr -d '\n\r'", clusterName)
-
-	securityGroupId, err := exec.Command("bash", "-c", searchSecurityGroupCmd).Output()
-	if err != nil {
-		log.Panicf("error: could not read security group id: %s", err)
-	}
-
-	securityGroupIdString := string(securityGroupId)
-
-	if len(securityGroupIdString) > 0 {
+	if len(securityGroupName) > 0 {
 		securityGroupClient := ec2.NewFromConfig(awsConfig)
 
 		securityGroupInput := ec2.DeleteSecurityGroupInput{
-			GroupId: &securityGroupIdString,
+
+			GroupName: &securityGroupName,
 		}
 
-		log.Printf("trying to delete security group %s\n", securityGroupIdString)
+		log.Printf("trying to delete security group %s\n", securityGroupName)
 
 		_, err = securityGroupClient.DeleteSecurityGroup(context.Background(), &securityGroupInput)
 		if err != nil {
 			return err
 		}
 
-		log.Printf("deleted security group %s\n", securityGroupIdString)
+		log.Printf("deleted security group %s\n", securityGroupName)
 	}
 
 	return nil
