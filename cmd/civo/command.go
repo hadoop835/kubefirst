@@ -31,12 +31,12 @@ func NewCommand() *cobra.Command {
 	}
 
 	// todo review defaults and update descriptions
-	civoCmd.Flags().StringVar(&adminEmailFlag, "admin-email", "jared@kubeshop.io", "email address for let's encrypt certificate notifications")
-	civoCmd.Flags().StringVar(&cloudRegionFlag, "cloud-region", "NYC1", "the civo region to provision infrastructure in")
+	civoCmd.Flags().StringVar(&adminEmailFlag, "admin-email", "john@kubefirst.io", "email address for let's encrypt certificate notifications")
+	civoCmd.Flags().StringVar(&cloudRegionFlag, "cloud-region", "LON1", "the civo region to provision infrastructure in")
 	civoCmd.Flags().StringVar(&cloudProviderFlag, "cloud-provider", "civo", "the git provider to use. (i.e. gitlab|github)")
-	civoCmd.Flags().StringVar(&clusterNameFlag, "cluster-name", "kubefirst", "the name of the cluster to create")
-	civoCmd.Flags().StringVar(&domainNameFlag, "domain-name", "k-ray.space", "the Civo DNS Name to use for DNS records (i.e. your-domain.com|subdomain.your-domain.com)")
-	civoCmd.Flags().StringVar(&githubOwner, "github-owner", "your-dns-io", "the GitHub owner of the new gitops and metaphor repositories")
+	civoCmd.Flags().StringVar(&clusterNameFlag, "cluster-name", "kubefirst-jd", "the name of the cluster to create")
+	civoCmd.Flags().StringVar(&domainNameFlag, "domain-name", "kubefast.com", "the Civo DNS Name to use for DNS records (i.e. your-domain.com|subdomain.your-domain.com)")
+	civoCmd.Flags().StringVar(&githubOwner, "github-owner", "kubefast", "the GitHub owner of the new gitops and metaphor repositories")
 	// civoCmd.MarkFlagRequired("github-owner")
 	civoCmd.Flags().StringVar(&gitopsTemplateBranchFlag, "gitops-template-branch", "civo-domain-refactor", "the branch to clone for the gitops-template repository")
 	civoCmd.Flags().StringVar(&gitopsTemplateURLFlag, "gitops-template-url", "https://github.com/kubefirst/gitops-template.git", "the fully qualified url to the gitops-template repository to clone")

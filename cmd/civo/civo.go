@@ -373,23 +373,6 @@ func runCivo(cmd *cobra.Command, args []string) error {
 	//! todo need to pass in url values for connectivity
 	k8s.LoopUntilPodIsReady(dryRun, kubeconfigPath, kubectlClientPath)
 
-	//* minio port-forward
-	minioStopChannel := make(chan struct{}, 1)
-	defer func() {
-		close(minioStopChannel)
-	}()
-	k8s.OpenPortForwardPodWrapper(
-		kubeconfigPath,
-		"minio",
-		"minio",
-		9000,
-		9000,
-		minioStopChannel,
-	)
-
-	// todo: can I remove it?
-	time.Sleep(20 * time.Second)
-
 	// configure vault with terraform
 	executionControl = viper.GetBool("terraform.vault.apply.complete")
 	if !executionControl {

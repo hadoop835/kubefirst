@@ -1,24 +1,8 @@
-# The name of the server to show in the TUI.
-name: Soft Serve
-
-# The host and port to display in the TUI. You may want to change this if your
-# server is accessible from a different host and/or port that what it's
-# actually listening on (for example, if it's behind a reverse proxy).
-host: localhost
-port: 23231
-
-# Access level for anonymous users. Options are: admin-access, read-write,
-# read-only, and no-access.
-anon-access: read-write
-
-# You can grant read-only access to users without private keys. Any password
-# will be accepted.
-allow-keyless: true
-
-# Customize repo display in the menu.
-repos:
-  - name: Home
-    repo: config
-    private: true
-    note: "Configuration and content repo for this server"
-    readme: README.md
+config:
+  admin-email: john@kubefirt.io 
+  hosted-zone-name: kubernickels.com
+  region: us-east-1 
+  profile: starter2
+  github-user: kube1st
+  github-owner: kubernickels
+  cloud: aws 
